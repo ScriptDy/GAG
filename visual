@@ -1,0 +1,298 @@
+-- Lumeniax RGB Utility UI (Redesigned Glassmorphism Version)
+
+local player = game:GetService("Players").LocalPlayer
+local UIS = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local RunService = game:GetService("RunService")
+
+local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+gui.Name = "DayvonLibrary"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+
+-- Main Window
+local main = Instance.new("Frame", gui)
+main.Size = UDim2.new(0, 380, 0, 420)
+main.Position = UDim2.new(0.5, -190, 0.5, -210)
+main.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+main.BackgroundTransparency = 0.25
+main.BorderSizePixel = 0
+Instance.new("UICorner", main).CornerRadius = UDim.new(0, 18)
+
+-- Subtle Glass Blur Effect
+local glass = Instance.new("ImageLabel", main)
+glass.Size = UDim2.new(1, 40, 1, 40)
+glass.Position = UDim2.new(0, -20, 0, -20)
+glass.BackgroundTransparency = 1
+glass.ZIndex = -2
+glass.Image = "rbxassetid://1316045217"
+glass.ImageTransparency = 0.85
+glass.ImageColor3 = Color3.fromRGB(255, 255, 255)
+glass.ScaleType = Enum.ScaleType.Slice
+glass.SliceCenter = Rect.new(10, 10, 118, 118)
+
+-- Neon Glow Stroke
+local neon = Instance.new("UIStroke", main)
+neon.Thickness = 2
+neon.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+neon.LineJoinMode = Enum.LineJoinMode.Round
+
+spawn(function()
+	local hue = 0
+	while true do
+		hue = (hue + 0.0015) % 1
+		neon.Color = Color3.fromHSV(hue, 0.6, 1)
+		RunService.RenderStepped:Wait()
+	end
+end)
+
+-- Header Bar
+local header = Instance.new("Frame", main)
+header.Size = UDim2.new(1, 0, 0, 50)
+header.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+header.BackgroundTransparency = 0.2
+Instance.new("UICorner", header).CornerRadius = UDim.new(0, 18)
+
+local title = Instance.new("TextLabel", header)
+title.Size = UDim2.new(1, -100, 1, 0)
+title.Position = UDim2.new(0, 20, 0, 0)
+title.Text = "GAG SCRIPT LOADER 2.0"
+title.Font = Enum.Font.GothamBold
+title.TextSize = 22
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.BackgroundTransparency = 1
+title.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Close & Minimize Buttons
+local function createControlButton(symbol, offset)
+	local btn = Instance.new("TextButton", header)
+	btn.Size = UDim2.new(0, 36, 0, 36)
+	btn.Position = UDim2.new(1, offset, 0.5, -18)
+	btn.Text = symbol
+	btn.Font = Enum.Font.GothamBold
+	btn.TextSize = 20
+	btn.TextColor3 = Color3.new(1,1,1)
+	btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+	btn.BackgroundTransparency = 0.2
+	Instance.new("UICorner", btn).CornerRadius = UDim.new(1, 0)
+	btn.AutoButtonColor = false
+	btn.MouseEnter:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(70, 70, 85) end)
+	btn.MouseLeave:Connect(function() btn.BackgroundColor3 = Color3.fromRGB(50, 50, 60) end)
+	return btn
+end
+
+local close = createControlButton("X", -46)
+local minimize = createControlButton("-", -88)
+
+close.MouseButton1Click:Connect(function() gui:Destroy() end)
+
+-- Draggable Logic for Main Window
+local dragging, dragInput, dragStart, startPos
+
+local function update(input)
+	local delta = input.Position - dragStart
+	main.Position = UDim2.new(
+		startPos.X.Scale, startPos.X.Offset + delta.X,
+		startPos.Y.Scale, startPos.Y.Offset + delta.Y
+	)
+end
+
+header.InputBegan:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+		dragging = true
+		dragStart = input.Position
+		startPos = main.Position
+
+		input.Changed:Connect(function()
+			if input.UserInputState == Enum.UserInputState.End then
+				dragging = false
+			end
+		end)
+	end
+end)
+
+header.InputChanged:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+		dragInput = input
+	end
+end)
+
+UIS.InputChanged:Connect(function(input)
+	if input == dragInput and dragging then
+		update(input)
+	end
+end)
+
+
+-- Container
+local container = Instance.new("Frame", main)
+container.Position = UDim2.new(0, 10, 0, 60)
+container.Size = UDim2.new(1, -20, 1, -80)
+container.BackgroundTransparency = 1
+
+local scrolling = Instance.new("ScrollingFrame", container)
+scrolling.Size = UDim2.new(1, 0, 1, 0)
+scrolling.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrolling.BackgroundTransparency = 1
+scrolling.ScrollBarThickness = 5
+scrolling.AutomaticCanvasSize = Enum.AutomaticSize.Y
+
+local layout = Instance.new("UIListLayout")
+layout.Parent = scrolling
+layout.Padding = UDim.new(0, 8)
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+local padding = Instance.new("UIPadding")
+padding.PaddingTop = UDim.new(0, 10)
+padding.PaddingBottom = UDim.new(0, 10)
+padding.PaddingLeft = UDim.new(0, 10)
+padding.PaddingRight = UDim.new(0, 10)
+padding.Parent = scrolling
+
+-- Minimize Logic
+local collapsed = false
+minimize.MouseButton1Click:Connect(function()
+	collapsed = not collapsed
+	container.Visible = not collapsed
+	main.Size = collapsed and UDim2.new(0, 380, 0, 60) or UDim2.new(0, 380, 0, 420)
+end)
+
+-- Toggle Button (Floating Icon)
+local toggle = Instance.new("TextButton", gui)
+toggle.Size = UDim2.new(0, 46, 0, 46)
+toggle.Position = UDim2.new(0, 15, 0.5, -23)
+toggle.Text = "≡"
+toggle.Font = Enum.Font.GothamBold
+toggle.TextSize = 24
+toggle.TextColor3 = Color3.new(1,1,1)
+toggle.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+Instance.new("UICorner", toggle).CornerRadius = UDim.new(1, 0)
+
+local toggled = true
+local function toggleMainUI()
+	local tween
+	if toggled then
+		tween = TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 0, 0, 0)})
+		tween:Play()
+		tween.Completed:Wait()
+		main.Visible = false
+	else
+		main.Size = UDim2.new(0, 0, 0, 0)
+		main.Visible = true
+		tween = TweenService:Create(main, TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Size = UDim2.new(0, 380, 0, 420)})
+		tween:Play()
+	end
+	toggled = not toggled
+end
+toggle.MouseButton1Click:Connect(toggleMainUI)
+
+
+-- Button Creator
+-- Button Creator (with "Click to Execute")
+local function createButton(text, url)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, 0, 0, 56)
+    btn.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    btn.BackgroundTransparency = 0.1
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = false
+    btn.Parent = scrolling
+
+    local corner = Instance.new("UICorner", btn)
+    corner.CornerRadius = UDim.new(0, 14)
+
+    -- Main title
+    local label = Instance.new("TextLabel", btn)
+    label.Size = UDim2.new(1, -20, 0, 28)
+    label.Position = UDim2.new(0, 10, 0, 4)
+    label.Text = text
+    label.Font = Enum.Font.GothamSemibold
+    label.TextSize = 18
+    label.TextColor3 = Color3.fromRGB(230, 230, 230)
+    label.BackgroundTransparency = 1
+    label.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Subtext: "Click to Execute"
+    local subtext = Instance.new("TextLabel", btn)
+    subtext.Size = UDim2.new(1, -20, 0, 20)
+    subtext.Position = UDim2.new(0, 10, 0, 30)
+    subtext.Text = "Click to Execute"
+    subtext.Font = Enum.Font.Gotham
+    subtext.TextSize = 14
+    subtext.TextColor3 = Color3.fromRGB(180, 180, 200)
+    subtext.BackgroundTransparency = 1
+    subtext.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- Glow effect
+    local glow = Instance.new("UIStroke", btn)
+    glow.Thickness = 2
+    glow.Transparency = 0.8
+    glow.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    glow.Color = Color3.fromRGB(0, 0, 0)
+
+    -- Hover animation
+    local function hoverEffect(hover)
+        local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        if hover then
+            TweenService:Create(btn, tweenInfo, {BackgroundColor3 = Color3.fromRGB(50, 50, 65), Size = UDim2.new(1, 6, 0, 60)}):Play()
+            TweenService:Create(glow, tweenInfo, {Transparency = 0.4}):Play()
+        else
+            TweenService:Create(btn, tweenInfo, {BackgroundColor3 = Color3.fromRGB(35, 35, 45), Size = UDim2.new(1, 0, 0, 56)}):Play()
+            TweenService:Create(glow, tweenInfo, {Transparency = 0.8}):Play()
+        end
+    end
+
+    btn.MouseEnter:Connect(function() hoverEffect(true) end)
+    btn.MouseLeave:Connect(function() hoverEffect(false) end)
+
+    btn.MouseButton1Down:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(1, -4, 0, 54)}):Play()
+    end)
+    btn.MouseButton1Up:Connect(function()
+        TweenService:Create(btn, TweenInfo.new(0.1), {Size = UDim2.new(1, 0, 0, 56)}):Play()
+    end)
+
+    -- RGB glow
+    spawn(function()
+        local hue = 0
+        while btn and btn.Parent do
+            hue = (hue + 0.003) % 1
+            glow.Color = Color3.fromHSV(hue, 0.7, 1)
+            RunService.RenderStepped:Wait()
+        end
+    end)
+
+    -- Execute on click
+    btn.MouseButton1Click:Connect(function()
+        pcall(function()
+            loadstring(game:HttpGet(url))()
+        end)
+    end)
+end
+
+
+
+-- Add Buttons
+createButton("ThunderZ Hub (KEYLESS)", "https://raw.githubusercontent.com/ThundarZ/Welcome/refs/heads/main/Main/GaG/Main.lua")
+createButton("ThanHub (KEYLESS)", "https://raw.githubusercontent.com/thantzy/thanhub/refs/heads/main/thanv1")
+createButton("SpeedhubX (KEYLESS)", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/speedhub")
+createButton("Project Reverse (KEYLESS)", "https://raw.githubusercontent.com/veryimportantrr/x/refs/heads/main/gag_visual.lua")
+createButton("Zysume Hub (KEY)", "https://raw.githubusercontent.com/ZusumeHub/ZusumeHub/refs/heads/main/UpdateZysume")
+createButton("Limit Hub (KEY)", "https://raw.githubusercontent.com/FakeModz/LimitHub/refs/heads/main/LimitHub_Luarmor_E.lua")
+createButton("Auto Trade Freeze", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/trade")
+createButton("Pet Size Changer", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/petsizechanger")
+createButton("Dark Spawner", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/darkspawner")
+createButton("Pet Mutation Finder", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/petmutation")
+createButton("Egg Randomizer", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/eggrandomizer")
+createButton("Pet Leveler", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/petleveler")
+
+-- Footer
+local footer = Instance.new("TextLabel", main)
+footer.Size = UDim2.new(1, 0, 0, 22)
+footer.Position = UDim2.new(0, 0, 1, -22)
+footer.Text = "Tiktok: @dayvon.script"
+footer.Font = Enum.Font.GothamSemibold
+footer.TextSize = 13
+footer.TextColor3 = Color3.fromRGB(180, 180, 180)
+footer.BackgroundTransparency = 1
+footer.TextXAlignment = Enum.TextXAlignment.Center
