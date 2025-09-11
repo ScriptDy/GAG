@@ -279,7 +279,6 @@ createButton("SpeedhubX (KEYLESS)", "https://raw.githubusercontent.com/ScriptDy/
 createButton("Project Reverse (KEYLESS)", "https://raw.githubusercontent.com/veryimportantrr/x/refs/heads/main/gag_visual.lua")
 createButton("Zysume Hub (KEY)", "https://raw.githubusercontent.com/ZusumeHub/ZusumeHub/refs/heads/main/UpdateZysume")
 createButton("Limit Hub (KEY)", "https://raw.githubusercontent.com/FakeModz/LimitHub/refs/heads/main/LimitHub_Luarmor_E.lua")
-createButton("Auto Trade Freeze", "https://raw.githubusercontent.com/nedyxxx/gAgFluxionAI/refs/heads/main/trade")
 createButton("Pet Size Changer", "https://raw.githubusercontent.com/ScriptDy/Library-/refs/heads/main/petsizechanger")
 createButton("Dark Spawner", "https://raw.githubusercontent.com/ScriptDy/Library-/refs/heads/main/darkspawner")
 createButton("Pet Mutation Finder", "https://raw.githubusercontent.com/ScriptDy/Library-/refs/heads/main/petmutation")
